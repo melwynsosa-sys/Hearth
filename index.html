@@ -2,277 +2,755 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Corazón 3D Completo - Frontiend.dev</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corazón de Partículas 💙</title>
+
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    body {
-      background-color: #020610;
-      color: #fff;
-      font-family: 'Consolas', 'Fira Code', monospace;
-      overflow: hidden;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    #canvas-container {
-      flex: 1;
-      width: 100%;
-      position: relative;
-      cursor: grab;
-    }
-    #canvas-container:active {
-      cursor: grabbing;
-    }
-    #editor {
-      height: 38vh;
-      background-color: #0b0f19;
-      border-top: 1px solid #1e293b;
-      padding: 16px 24px;
-      font-size: 13px;
-      line-height: 1.6;
-      overflow-y: auto;
-      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
-    }
-    .dots {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-    }
-    .dot-red { background-color: #f87171; }
-    .dot-yellow { background-color: #fbbf24; }
-    .dot-green { background-color: #34d399; }
 
-    .kwd { color: #f43f5e; }
-    .var { color: #3b82f6; }
-    .num { color: #c084fc; }
-    .str { color: #34d399; }
-    .com { color: #6b7280; }
-    .fn  { color: #facc15; }
-    .watermark {
-      margin-top: 15px;
-      font-size: 11px;
-      color: #475569;
-      letter-spacing: 1px;
-      font-weight: bold;
+    body {
+      overflow: hidden;
+      background: #020610;
+      font-family: Arial, sans-serif;
+    }
+
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    #musicButton {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+
+      padding: 12px 24px;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 30px;
+
+      background: rgba(10,20,50,0.65);
+      backdrop-filter: blur(10px);
+
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+
+      box-shadow:
+        0 0 15px rgba(80,150,255,0.5),
+        inset 0 0 10px rgba(255,255,255,0.05);
+
+      transition: 0.3s;
+    }
+
+    #musicButton:hover {
+      transform: translateX(-50%) scale(1.05);
+      box-shadow: 0 0 25px rgba(80,150,255,0.8);
+    }
+
+    #message {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+
+      color: rgba(255,255,255,0.85);
+      font-size: 18px;
+      text-align: center;
+
+      text-shadow: 0 0 10px #4da3ff;
+
+      pointer-events: none;
     }
   </style>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
+
 <body>
 
-  <div id="canvas-container"></div>
+<div id="canvas-container"></div>
 
-  <div id="editor">
-    <div class="dots">
-      <div class="dot dot-red"></div>
-      <div class="dot dot-yellow"></div>
-      <div class="dot dot-green"></div>
-    </div>
-    <pre><code><span class="kwd">const</span> <span class="var">floatParticles</span> = [];
-<span class="kwd">const</span> <span class="var">burstParticles</span> = [];
-<span class="kwd">const</span> <span class="var">FLOAT_COUNT</span> = <span class="num">140</span>;
+<button id="musicButton">🎵 Activar música</button>
 
-<span class="kwd">for</span> (<span class="kwd">let</span> i = <span class="num">0</span>; i &lt; <span class="var">FLOAT_COUNT</span>; i++) {
-  <span class="kwd">const</span> p = <span class="kwd">new</span> <span class="fn">Particle</span>(
-    Math.random() * width, Math.random() * height, <span class="str">"float"</span>
-  );
-  p.life = Math.random() * p.maxLife; <span class="com">// stagger starting life</span>
-  floatParticles.push(p);
-}
+<div id="message">
+  💙 Un corazón hecho de luz 💙
+</div>
 
-<span class="kwd">function</span> <span class="fn">spawnHeartBurst</span>(x, y) {
-  <span class="kwd">const</span> count = <span class="num">140</span>;
-  <span class="kwd">for</span> (<span class="kwd">let</span> i = <span class="num">0</span>; i &lt; count; i++) {
-    burstParticles.push(<span class="kwd">new</span> <span class="fn">Particle</span>(x, y, <span class="str">"burst"</span>));
-  }
-}
-
-<span class="var">BLUE_SHADES</span> = [
-  <span class="str">"#3b82f6"</span>, <span class="str">"#60a5fa"</span>, <span class="com">// blue-400</span>
-  <span class="str">"#93c5fd"</span>, <span class="str">"#2563eb"</span>, <span class="com">// blue-600</span>
-  <span class="str">"#bfdbfe"</span>, <span class="str">"#1d4ed8"</span>  <span class="com">// blue-700</span>
-];</code></pre>
-    <div class="watermark">FRONTIEND.DEV</div>
-  </div>
+<audio id="music" loop>
+  <source src="musica.mp3" type="audio/mpeg">
+</audio>
 
 <script>
-  const container = document.getElementById('canvas-container');
 
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x020610, 0.015);
+const container = document.getElementById("canvas-container");
 
-  const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
-  camera.position.set(0, 0, 30);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  container.appendChild(renderer.domElement);
+// ===============================
+// ESCENA
+// ===============================
 
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
-  controls.rotateSpeed = 0.8;
+const scene = new THREE.Scene();
 
-  function createGlowTexture() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
-    const ctx = canvas.getContext('2d');
-    const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    gradient.addColorStop(0.25, 'rgba(96, 165, 250, 0.85)');
-    gradient.addColorStop(0.6, 'rgba(37, 99, 235, 0.35)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 64, 64);
+scene.fog = new THREE.FogExp2(
+  0x020610,
+  0.012
+);
 
-    const texture = new THREE.Texture(canvas);
-    texture.needsUpdate = true;
-    return texture;
-  }
 
-  const particleTexture = createGlowTexture();
+// ===============================
+// CÁMARA
+// ===============================
 
-  const palette = [
-    new THREE.Color("#3b82f6"),
-    new THREE.Color("#60a5fa"),
-    new THREE.Color("#93c5fd"),
-    new THREE.Color("#2563eb"),
-    new THREE.Color("#bfdbfe"),
-    new THREE.Color("#1d4ed8")
-  ];
+const camera = new THREE.PerspectiveCamera(
+  60,
+  container.clientWidth / container.clientHeight,
+  0.1,
+  1000
+);
 
-  // Aumento masivo a 8000 partículas para llenar completamente la figura
-  const heartParticleCount = 8000;
-  const heartGeo = new THREE.BufferGeometry();
-  const heartPos = new Float32Array(heartParticleCount * 3);
-  const heartCols = new Float32Array(heartParticleCount * 3);
-  const heartOrig = new Float32Array(heartParticleCount * 3);
-  const speeds = new Float32Array(heartParticleCount);
+camera.position.set(0, 0, 34);
 
-  for (let i = 0; i < heartParticleCount; i++) {
-    const t = Math.PI * (2 * Math.random() - 1);
-    let x = 16 * Math.pow(Math.sin(t), 3);
-    let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
-    
-    // Distribución densa interna y externa
-    const fillFactor = Math.pow(Math.random(), 0.5); // Llenado sólido uniforme
-    x *= fillFactor * 0.65;
-    y *= fillFactor * 0.65;
-    let z = (Math.random() - 0.5) * 8 * fillFactor; 
 
-    heartPos[i * 3] = x;
-    heartPos[i * 3 + 1] = y;
-    heartPos[i * 3 + 2] = z;
+// ===============================
+// RENDER
+// ===============================
 
-    heartOrig[i * 3] = x;
-    heartOrig[i * 3 + 1] = y;
-    heartOrig[i * 3 + 2] = z;
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: true
+});
 
-    speeds[i] = Math.random() * 1.5 + 0.5;
+renderer.setSize(
+  container.clientWidth,
+  container.clientHeight
+);
 
-    const col = palette[Math.floor(Math.random() * palette.length)];
-    heartCols[i * 3] = col.r;
-    heartCols[i * 3 + 1] = col.g;
-    heartCols[i * 3 + 2] = col.b;
-  }
+renderer.setPixelRatio(
+  Math.min(window.devicePixelRatio, 2)
+);
 
-  heartGeo.setAttribute('position', new THREE.BufferAttribute(heartPos, 3));
-  heartGeo.setAttribute('color', new THREE.BufferAttribute(heartCols, 3));
+container.appendChild(renderer.domElement);
 
-  const heartMat = new THREE.PointsMaterial({
-    size: 0.75,
+
+// ===============================
+// CONTROLES
+// ===============================
+
+const controls = new THREE.OrbitControls(
+  camera,
+  renderer.domElement
+);
+
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.enablePan = false;
+controls.minDistance = 20;
+controls.maxDistance = 55;
+
+
+// ===============================
+// TEXTURA DE LUZ
+// ===============================
+
+function createGlowTexture() {
+
+  const canvas = document.createElement("canvas");
+
+  canvas.width = 128;
+  canvas.height = 128;
+
+  const ctx = canvas.getContext("2d");
+
+  const gradient = ctx.createRadialGradient(
+    64,
+    64,
+    0,
+    64,
+    64,
+    64
+  );
+
+  gradient.addColorStop(
+    0,
+    "rgba(255,255,255,1)"
+  );
+
+  gradient.addColorStop(
+    0.15,
+    "rgba(170,220,255,1)"
+  );
+
+  gradient.addColorStop(
+    0.4,
+    "rgba(70,150,255,0.8)"
+  );
+
+  gradient.addColorStop(
+    0.7,
+    "rgba(30,80,255,0.25)"
+  );
+
+  gradient.addColorStop(
+    1,
+    "rgba(0,0,0,0)"
+  );
+
+  ctx.fillStyle = gradient;
+
+  ctx.fillRect(
+    0,
+    0,
+    128,
+    128
+  );
+
+  const texture = new THREE.Texture(canvas);
+
+  texture.needsUpdate = true;
+
+  return texture;
+}
+
+
+const particleTexture = createGlowTexture();
+
+
+// ===============================
+// COLORES
+// ===============================
+
+const palette = [
+
+  new THREE.Color("#1d4ed8"),
+  new THREE.Color("#2563eb"),
+  new THREE.Color("#3b82f6"),
+  new THREE.Color("#60a5fa"),
+  new THREE.Color("#93c5fd"),
+  new THREE.Color("#bfdbfe"),
+  new THREE.Color("#ffffff")
+
+];
+
+
+// =====================================================
+// CORAZÓN
+// =====================================================
+
+const heartParticleCount = 20000;
+
+const heartGeo =
+  new THREE.BufferGeometry();
+
+const heartPos =
+  new Float32Array(
+    heartParticleCount * 3
+  );
+
+const heartOrig =
+  new Float32Array(
+    heartParticleCount * 3
+  );
+
+const heartCols =
+  new Float32Array(
+    heartParticleCount * 3
+  );
+
+const speeds =
+  new Float32Array(
+    heartParticleCount
+  );
+
+
+// =====================================================
+// GENERACIÓN DEL CORAZÓN RELLENO
+// =====================================================
+
+for (
+  let i = 0;
+  i < heartParticleCount;
+  i++
+) {
+
+  /*
+    Generamos muchos puntos dentro
+    de la ecuación del corazón.
+  */
+
+  const t =
+    Math.random() *
+    Math.PI *
+    2;
+
+  /*
+    Punto de la superficie
+  */
+
+  const surfaceX =
+    16 *
+    Math.pow(Math.sin(t), 3);
+
+  const surfaceY =
+    13 * Math.cos(t)
+    - 5 * Math.cos(2 * t)
+    - 2 * Math.cos(3 * t)
+    - Math.cos(4 * t);
+
+
+  /*
+    Distribución radial.
+
+    Al usar sqrt(random)
+    conseguimos que el corazón
+    quede MUCHO más lleno.
+  */
+
+  const fill =
+    Math.sqrt(Math.random());
+
+
+  let x =
+    surfaceX *
+    fill *
+    0.65;
+
+  let y =
+    surfaceY *
+    fill *
+    0.65;
+
+
+  /*
+    Profundidad 3D
+  */
+
+  let z =
+    (Math.random() - 0.5) *
+    5.5 *
+    fill;
+
+
+  /*
+    Pequeña irregularidad
+    para que no parezca una
+    figura completamente plana.
+  */
+
+  x += (Math.random() - 0.5) * 0.15;
+  y += (Math.random() - 0.5) * 0.15;
+
+
+  const index = i * 3;
+
+
+  heartPos[index] = x;
+  heartPos[index + 1] = y;
+  heartPos[index + 2] = z;
+
+
+  heartOrig[index] = x;
+  heartOrig[index + 1] = y;
+  heartOrig[index + 2] = z;
+
+
+  speeds[i] =
+    Math.random() * 1.5 + 0.5;
+
+
+  /*
+    Color aleatorio
+  */
+
+  const color =
+    palette[
+      Math.floor(
+        Math.random() *
+        palette.length
+      )
+    ];
+
+
+  heartCols[index] =
+    color.r;
+
+  heartCols[index + 1] =
+    color.g;
+
+  heartCols[index + 2] =
+    color.b;
+}
+
+
+heartGeo.setAttribute(
+  "position",
+  new THREE.BufferAttribute(
+    heartPos,
+    3
+  )
+);
+
+
+heartGeo.setAttribute(
+  "color",
+  new THREE.BufferAttribute(
+    heartCols,
+    3
+  )
+);
+
+
+// ===============================
+// MATERIAL DEL CORAZÓN
+// ===============================
+
+const heartMat =
+  new THREE.PointsMaterial({
+
+    size: 0.62,
+
     map: particleTexture,
+
     vertexColors: true,
+
     transparent: true,
-    blending: THREE.AdditiveBlending,
+
+    opacity: 0.95,
+
+    blending:
+      THREE.AdditiveBlending,
+
     depthWrite: false
+
   });
 
-  const heartMesh = new THREE.Points(heartGeo, heartMat);
-  scene.add(heartMesh);
 
-  // Base radiante
-  const baseCount = 800;
-  const baseGeo = new THREE.BufferGeometry();
-  const basePos = new Float32Array(baseCount * 3);
-  const baseCols = new Float32Array(baseCount * 3);
+const heartMesh =
+  new THREE.Points(
+    heartGeo,
+    heartMat
+  );
 
-  for (let i = 0; i < baseCount; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const radius = Math.random() * 6.5;
-    basePos[i * 3] = Math.cos(angle) * radius;
-    basePos[i * 3 + 1] = -12 + (Math.random() - 0.5) * 1.5;
-    basePos[i * 3 + 2] = Math.sin(angle) * radius;
 
-    const col = palette[Math.floor(Math.random() * palette.length)];
-    baseCols[i * 3] = col.r;
-    baseCols[i * 3 + 1] = col.g;
-    baseCols[i * 3 + 2] = col.b;
+scene.add(heartMesh);
+
+
+// =====================================================
+// PARTÍCULAS ALREDEDOR
+// =====================================================
+
+const ambientCount = 2500;
+
+const ambientGeo =
+  new THREE.BufferGeometry();
+
+const ambientPos =
+  new Float32Array(
+    ambientCount * 3
+  );
+
+
+for (
+  let i = 0;
+  i < ambientCount;
+  i++
+) {
+
+  const index = i * 3;
+
+  ambientPos[index] =
+    (Math.random() - 0.5) * 55;
+
+  ambientPos[index + 1] =
+    (Math.random() - 0.5) * 40;
+
+  ambientPos[index + 2] =
+    (Math.random() - 0.5) * 30;
+
+}
+
+
+ambientGeo.setAttribute(
+  "position",
+  new THREE.BufferAttribute(
+    ambientPos,
+    3
+  )
+);
+
+
+const ambientMat =
+  new THREE.PointsMaterial({
+
+    size: 0.18,
+
+    map: particleTexture,
+
+    color: 0x6aaeff,
+
+    transparent: true,
+
+    opacity: 0.6,
+
+    blending:
+      THREE.AdditiveBlending,
+
+    depthWrite: false
+
+  });
+
+
+const ambientParticles =
+  new THREE.Points(
+    ambientGeo,
+    ambientMat
+  );
+
+
+scene.add(
+  ambientParticles
+);
+
+
+// =====================================================
+// HALO DETRÁS DEL CORAZÓN
+// =====================================================
+
+const haloGeo =
+  new THREE.RingGeometry(
+    10,
+    15,
+    64
+  );
+
+
+const haloMat =
+  new THREE.MeshBasicMaterial({
+
+    color: 0x1677ff,
+
+    transparent: true,
+
+    opacity: 0.07,
+
+    side: THREE.DoubleSide,
+
+    blending:
+      THREE.AdditiveBlending
+
+  });
+
+
+const halo =
+  new THREE.Mesh(
+    haloGeo,
+    haloMat
+  );
+
+
+halo.position.z = -3;
+
+scene.add(halo);
+
+
+// =====================================================
+// ANIMACIÓN
+// =====================================================
+
+const clock =
+  new THREE.Clock();
+
+
+function animate() {
+
+  requestAnimationFrame(
+    animate
+  );
+
+
+  const time =
+    clock.getElapsedTime();
+
+
+  // Rotación
+
+  heartMesh.rotation.y =
+    time * 0.22;
+
+
+  ambientParticles.rotation.y =
+    time * 0.015;
+
+
+  halo.rotation.z =
+    time * 0.15;
+
+
+  // =============================
+  // LATIDO
+  // =============================
+
+  const heartbeat =
+    1
+    + Math.sin(time * 3.5) * 0.035
+    + Math.pow(
+        Math.sin(time * 7),
+        2
+      ) * 0.025;
+
+
+  heartMesh.scale.set(
+    heartbeat,
+    heartbeat,
+    heartbeat
+  );
+
+
+  // =============================
+  // MOVIMIENTO DE PARTÍCULAS
+  // =============================
+
+  const positions =
+    heartGeo.attributes.position;
+
+
+  for (
+    let i = 0;
+    i < heartParticleCount;
+    i++
+  ) {
+
+    const index = i * 3;
+
+    const speed =
+      speeds[i];
+
+
+    positions.array[index] =
+
+      heartOrig[index]
+      +
+      Math.sin(
+        time * speed + i
+      ) * 0.08;
+
+
+    positions.array[index + 1] =
+
+      heartOrig[index + 1]
+      +
+      Math.cos(
+        time * speed + i
+      ) * 0.08;
+
+
+    positions.array[index + 2] =
+
+      heartOrig[index + 2]
+      +
+      Math.sin(
+        time * speed * 0.5 + i
+      ) * 0.08;
+
   }
 
-  baseGeo.setAttribute('position', new THREE.BufferAttribute(basePos, 3));
-  baseGeo.setAttribute('color', new THREE.BufferAttribute(baseCols, 3));
 
-  const baseMesh = new THREE.Points(baseGeo, new THREE.PointsMaterial({
-    size: 0.65,
-    map: particleTexture,
-    vertexColors: true,
-    transparent: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  }));
-  scene.add(baseMesh);
+  positions.needsUpdate =
+    true;
 
-  window.addEventListener('resize', () => {
-    camera.aspect = container.clientWidth / container.clientHeight;
+
+  // =============================
+  // AMBIENTE
+  // =============================
+
+  ambientParticles.rotation.x =
+    Math.sin(time * 0.1) * 0.1;
+
+
+  controls.update();
+
+  renderer.render(
+    scene,
+    camera
+  );
+
+}
+
+
+animate();
+
+
+// =====================================================
+// RESIZE
+// =====================================================
+
+window.addEventListener(
+  "resize",
+  () => {
+
+    camera.aspect =
+      container.clientWidth /
+      container.clientHeight;
+
     camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-  });
 
-  const clock = new THREE.Clock();
 
-  function animate() {
-    requestAnimationFrame(animate);
+    renderer.setSize(
+      container.clientWidth,
+      container.clientHeight
+    );
 
-    const time = clock.getElapsedTime();
-
-    // Rotación suave del corazón y la base
-    heartMesh.rotation.y = time * 0.55;
-    baseMesh.rotation.y = -time * 0.3;
-
-    // Latido orgánico
-    const beat = 1 + Math.sin(time * 3.5) * 0.03 + Math.pow(Math.sin(time * 7), 2) * 0.015;
-    heartMesh.scale.set(beat, beat, beat);
-
-    // Movimiento sutil interno
-    const posAttr = heartGeo.attributes.position;
-    for (let i = 0; i < heartParticleCount; i++) {
-      const idx = i * 3;
-      const spd = speeds[i];
-
-      posAttr.array[idx] = heartOrig[idx] + Math.sin(time * spd + i) * 0.12;
-      posAttr.array[idx + 1] = heartOrig[idx + 1] + Math.cos(time * spd + i) * 0.12;
-      posAttr.array[idx + 2] = heartOrig[idx + 2] + Math.sin(time * spd * 0.5) * 0.12;
-    }
-    posAttr.needsUpdate = true;
-
-    controls.update();
-    renderer.render(scene, camera);
   }
+);
 
-  animate();
+
+// =====================================================
+// MÚSICA
+// =====================================================
+
+const music =
+  document.getElementById(
+    "music"
+  );
+
+const musicButton =
+  document.getElementById(
+    "musicButton"
+  );
+
+
+musicButton.addEventListener(
+  "click",
+  () => {
+
+    if (
+      music.paused
+    ) {
+
+      music.play();
+
+      musicButton.textContent =
+        "🔊 Música activada";
+
+    } else {
+
+      music.pause();
+
+      musicButton.textContent =
+        "🎵 Activar música";
+
+    }
+
+  }
+);
+
 </script>
 
 </body>
