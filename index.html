@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Corazón 3D Interactivo</title>
+  <title>Corazón 3D - Frontiend</title>
   <style>
     * {
       margin: 0;
@@ -10,34 +10,36 @@
       box-sizing: border-box;
     }
     body {
-      background-color: #000;
+      background-color: #030712;
       color: #fff;
-      font-family: 'Courier New', Courier, monospace;
+      font-family: 'Consolas', 'Fira Code', monospace;
       overflow: hidden;
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      height: 100vh;
     }
     #canvas-container {
       flex: 1;
       width: 100%;
+      height: 65vh;
       position: relative;
       cursor: grab;
     }
     #canvas-container:active {
       cursor: grabbing;
     }
-    /* Estilo del editor de código inferior */
-    #code-editor {
+    /* Estilo del editor del vídeo (IDE) */
+    #editor {
       height: 35vh;
-      background-color: #0b0d14;
-      border-top: 1px solid #1e293b;
-      padding: 15px 20px;
+      background-color: #0d1117;
+      border-top: 1px solid #1f2937;
+      padding: 16px 24px;
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.6;
       overflow-y: auto;
+      box-shadow: 0 -10px 25px rgba(0,0,0,0.5);
     }
-    .window-dots {
+    .dots {
       display: flex;
       gap: 8px;
       margin-bottom: 12px;
@@ -47,179 +49,198 @@
       height: 12px;
       border-radius: 50%;
     }
-    .red { background-color: #ef4444; }
-    .yellow { background-color: #f59e0b; }
-    .green { background-color: #10b981; }
-    
-    /* Colores del código */
-    .keyword { color: #f43f5e; }
+    .dot-red { background-color: #f87171; }
+    .dot-yellow { background-color: #fbbf24; }
+    .dot-green { background-color: #34d399; }
+
+    /* Sintaxis de código */
+    .kwd { color: #f43f5e; }
     .var { color: #3b82f6; }
-    .num { color: #a855f7; }
-    .string { color: #10b981; }
-    .comment { color: #64748b; }
-    .fn { color: #eab308; }
+    .num { color: #c084fc; }
+    .str { color: #34d399; }
+    .com { color: #6b7280; }
+    .fn  { color: #facc15; }
   </style>
+  <!-- Tres.js y OrbitControls desde CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
-  <div id="canvas-container">
-    <canvas id="canvas"></canvas>
-  </div>
+  <div id="canvas-container"></div>
 
-  <div id="code-editor">
-    <div class="window-dots">
-      <div class="dot red"></div>
-      <div class="dot yellow"></div>
-      <div class="dot green"></div>
+  <div id="editor">
+    <div class="dots">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
     </div>
-    <pre><code><span class="keyword">const</span> <span class="var">floatParticles</span> = [];
-<span class="keyword">const</span> <span class="var">burstParticles</span> = [];
-<span class="keyword">const</span> <span class="var">FLOAT_COUNT</span> = <span class="num">140</span>;
+    <pre><code><span class="kwd">const</span> <span class="var">floatParticles</span> = [];
+<span class="kwd">const</span> <span class="var">burstParticles</span> = [];
+<span class="kwd">const</span> <span class="var">FLOAT_COUNT</span> = <span class="num">140</span>;
 
-<span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="num">0</span>; i &lt; <span class="var">FLOAT_COUNT</span>; i++) {
-  <span class="keyword">const</span> p = <span class="keyword">new</span> <span class="fn">Particle</span>(
-    Math.random() * width, Math.random() * height, <span class="string">"float"</span>
+<span class="kwd">for</span> (<span class="kwd">let</span> i = <span class="num">0</span>; i &lt; <span class="var">FLOAT_COUNT</span>; i++) {
+  <span class="kwd">const</span> p = <span class="kwd">new</span> <span class="fn">Particle</span>(
+    Math.random() * width, Math.random() * height, <span class="str">"float"</span>
   );
-  p.life = Math.random() * p.maxLife; <span class="comment">// stagger starting life</span>
+  p.life = Math.random() * p.maxLife; <span class="com">// stagger starting life</span>
   floatParticles.push(p);
 }
 
-<span class="keyword">function</span> <span class="fn">spawnHeartBurst</span>(x, y) {
-  <span class="keyword">const</span> count = <span class="num">140</span>;
-  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="num">0</span>; i &lt; count; i++) {
-    burstParticles.push(<span class="keyword">new</span> <span class="fn">Particle</span>(x, y, <span class="string">"burst"</span>));
+<span class="kwd">function</span> <span class="fn">spawnHeartBurst</span>(x, y) {
+  <span class="kwd">const</span> count = <span class="num">140</span>;
+  <span class="kwd">for</span> (<span class="kwd">let</span> i = <span class="num">0</span>; i &lt; count; i++) {
+    burstParticles.push(<span class="kwd">new</span> <span class="fn">Particle</span>(x, y, <span class="str">"burst"</span>));
   }
 }
 
 <span class="var">BLUE_SHADES</span> = [
-  <span class="string">"#3b82f6"</span>, <span class="string">"#60a5fa"</span>, <span class="comment">// blue-400</span>
-  <span class="string">"#93c5fd"</span>, <span class="string">"#2563eb"</span>, <span class="comment">// blue-600</span>
-  <span class="string">"#bfdbfe"</span>, <span class="string">"#1d4ed8"</span>  <span class="comment">// blue-700</span>
+  <span class="str">"#3b82f6"</span>, <span class="str">"#60a5fa"</span>, <span class="com">// blue-400</span>
+  <span class="str">"#93c5fd"</span>, <span class="str">"#2563eb"</span>, <span class="com">// blue-600</span>
+  <span class="str">"#bfdbfe"</span>, <span class="str">"#1d4ed8"</span>  <span class="com">// blue-700</span>
 ];</code></pre>
   </div>
 
 <script>
-  const container = document.getElementById("canvas-container");
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
+  const container = document.getElementById('canvas-container');
 
-  let width, height;
+  // Escena, cámara y renderizador 3D
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x030712, 0.02);
 
-  function resize() {
-    width = canvas.width = container.clientWidth;
-    height = canvas.height = container.clientHeight;
+  const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+  camera.position.set(0, 0, 32);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  // Controles de orbitales para rotar / arrastrar con ratón o táctil
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.rotateSpeed = 0.8;
+
+  // Generador de textura de brillo azul brillante
+  function createGlowTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    gradient.addColorStop(0.2, 'rgba(96, 165, 250, 0.9)');
+    gradient.addColorStop(0.5, 'rgba(37, 99, 235, 0.4)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 64, 64);
+
+    const texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true;
+    return texture;
   }
-  window.addEventListener("resize", resize);
-  resize();
 
-  const BLUE_SHADES = ["#3b82f6", "#60a5fa", "#93c5fd", "#2563eb", "#bfdbfe", "#1d4ed8"];
+  // Creación del corazón en 3D volumétrico
+  const particleCount = 2800;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const colors = new Float32Array(particleCount * 3);
+  const originalPositions = new Float32Array(particleCount * 3);
+  const randomSpeeds = new Float32Array(particleCount);
 
-  // Variables para la rotación 3D al arrastrar
-  let angleX = 0;
-  let angleY = 0;
-  let isDragging = false;
-  let previousMousePosition = { x: 0, y: 0 };
+  const palette = [
+    new THREE.Color("#3b82f6"),
+    new THREE.Color("#60a5fa"),
+    new THREE.Color("#93c5fd"),
+    new THREE.Color("#2563eb"),
+    new THREE.Color("#bfdbfe"),
+    new THREE.Color("#1d4ed8")
+  ];
 
-  // Control de Mouse / Touch para girar en 3D
-  container.addEventListener("mousedown", (e) => {
-    isDragging = true;
-    previousMousePosition = { x: e.clientX, y: e.clientY };
-  });
+  for (let i = 0; i < particleCount; i++) {
+    // Ecuación paramétrica de corazón 3D
+    const t = Math.PI * (2 * Math.random() - 1);
+    const u = Math.PI * (Math.random() - 0.5);
 
-  window.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    const deltaX = e.clientX - previousMousePosition.x;
-    const deltaY = e.clientY - previousMousePosition.y;
-
-    angleY += deltaX * 0.01;
-    angleX += deltaY * 0.01;
-
-    previousMousePosition = { x: e.clientX, y: e.clientY };
-  });
-
-  window.addEventListener("mouseup", () => isDragging = false);
-
-  // Ecuación paramétrica de corazón en 3D
-  function getHeart3DPosition(t, u) {
-    const scale = Math.min(width, height) / 35;
-    
-    // Forma de corazón tridimensional
+    // Ecuación del contorno/volumen
     let x = 16 * Math.pow(Math.sin(t), 3);
-    let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-    let z = u * 10;
+    let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+    let z = (Math.random() - 0.5) * 8; // Grosor 3D
 
-    // Rotación 3D en eje X e Y
-    let cosX = Math.cos(angleX), sinX = Math.sin(angleX);
-    let cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+    // Dispersión suave dentro de la forma
+    const factor = 0.65;
+    x *= factor + (Math.random() - 0.5) * 0.15;
+    y *= factor + (Math.random() - 0.5) * 0.15;
+    z *= factor + (Math.random() - 0.5) * 0.15;
 
-    // Rotar Y
-    let x1 = x * cosY + z * sinY;
-    let z1 = -x * sinY + z * cosY;
+    positions[i * 3] = x;
+    positions[i * 3 + 1] = y;
+    positions[i * 3 + 2] = z;
 
-    // Rotar X
-    let y1 = y * cosX - z1 * sinX;
-    let z2 = y * sinX + z1 * cosX;
+    originalPositions[i * 3] = x;
+    originalPositions[i * 3 + 1] = y;
+    originalPositions[i * 3 + 2] = z;
 
-    // Proyección con perspectiva
-    const perspective = 400;
-    const fov = perspective / (perspective + z2);
+    randomSpeeds[i] = Math.random() * 2 + 1;
 
-    return {
-      x: width / 2 + x1 * scale * fov,
-      y: height / 2 + y1 * scale * fov,
-      size: Math.max(0.5, fov * 2)
-    };
+    const col = palette[Math.floor(Math.random() * palette.length)];
+    colors[i * 3] = col.r;
+    colors[i * 3 + 1] = col.g;
+    colors[i * 3 + 2] = col.b;
   }
 
-  class Particle {
-    constructor() {
-      this.t = Math.random() * Math.PI * 2;
-      this.u = (Math.random() - 0.5) * 2;
-      this.color = BLUE_SHADES[Math.floor(Math.random() * BLUE_SHADES.length)];
-      this.speed = Math.random() * 0.02 + 0.005;
-      this.offset = (Math.random() - 0.5) * 8;
-    }
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    update() {
-      this.t += this.speed;
-    }
+  const material = new THREE.PointsMaterial({
+    size: 0.9,
+    map: createGlowTexture(),
+    vertexColors: true,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
 
-    draw() {
-      const pos = getHeart3DPosition(this.t, this.u);
-      
-      ctx.save();
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = this.color;
-      ctx.fillStyle = this.color;
-      ctx.beginPath();
-      ctx.arc(pos.x + this.offset, pos.y + this.offset, pos.size, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-  }
+  const heartParticles = new THREE.Points(geometry, material);
+  scene.add(heartParticles);
 
-  const particles = [];
-  const TOTAL_PARTICLES = 400;
+  // Redimensionado de ventana
+  window.addEventListener('resize', () => {
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+  });
 
-  for (let i = 0; i < TOTAL_PARTICLES; i++) {
-    particles.push(new Particle());
-  }
+  // Animación del latido y movimiento fluido de partículas
+  let clock = new THREE.Clock();
 
   function animate() {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-    ctx.fillRect(0, 0, width, height);
-
-    // Auto-rotación suave si no se está arrastrando
-    if (!isDragging) {
-      angleY += 0.005;
-    }
-
-    particles.forEach(p => {
-      p.update();
-      p.draw();
-    });
-
     requestAnimationFrame(animate);
+
+    const time = clock.getElapsedTime();
+
+    // Efecto de Latido de Corazón
+    const beat = 1 + Math.sin(time * 3) * 0.05 + Math.pow(Math.sin(time * 6), 2) * 0.03;
+    heartParticles.scale.set(beat, beat, beat);
+
+    // Rotación suave constante si el usuario no arrastra
+    heartParticles.rotation.y = time * 0.25;
+
+    // Movimiento orgánico interno de cada partícula
+    const posAttr = geometry.attributes.position;
+    for (let i = 0; i < particleCount; i++) {
+      const idx = i * 3;
+      const speed = randomSpeeds[i];
+
+      posAttr.array[idx] = originalPositions[idx] + Math.sin(time * speed + i) * 0.2;
+      posAttr.array[idx + 1] = originalPositions[idx + 1] + Math.cos(time * speed + i) * 0.2;
+      posAttr.array[idx + 2] = originalPositions[idx + 2] + Math.sin(time * speed * 0.5) * 0.2;
+    }
+    posAttr.needsUpdate = true;
+
+    controls.update();
+    renderer.render(scene, camera);
   }
 
   animate();
